@@ -1,0 +1,15 @@
+type: object
+description: Financial instrument entity.
+properties:
+  type:
+    type: string
+    enum:
+      - Cash
+      - Bond
+      - Equity
+  name:
+    type: string
+  identificationList:
+    type: array
+    items:
+      $ref: 'Identification.yaml'

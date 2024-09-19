@@ -1,0 +1,127 @@
+openapi: 3.1.0
+info:
+  title: Financial Instrument Sample Polymorph
+  version: 1.0.0
+  description: This is the description
+  contact:
+    email: openwealth@synpulse.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - description: Sample Server URL
+    url: https://openwealth.ch/
+externalDocs:
+  description: Find out more about OpenWealth API specifications.
+  url: https://openwealth.ch/
+paths:
+  /financial-instruments:
+    get:
+      responses:
+        '200':
+          description: gets list of instruments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialInstrument'
+              examples:
+                Cash:
+                  summary: A foo example
+                  value:
+                    name: Swiss Franks
+                    currency: CHF
+                Equity:
+                  summary: A foo example
+                  value:
+                    name: Apple Inc.
+                    identificationList:
+                      - type: isin
+                        identifier: US0378331005
+                Bond:
+                  summary: A bar example
+                  value:
+                    name: 0,5% 18/32 Swiss Gov.
+                    maturityDate: '2032-06-27'
+                    identificationList:
+                      - type: isin
+                        identifier: CH0344958688
+components:
+  schemas:
+    Cash:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FinancialInstrumentBase'
+        - type: object
+          properties:
+            currency:
+              type: string
+              pattern: ^[A-Z]{3}$
+    Bond:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FinancialInstrumentBase'
+        - type: object
+          properties:
+            currencyOfDenomination:
+              type: string
+              pattern: ^[A-Z]{3}$
+            maturityDate:
+              type: string
+              format: date
+            coupon:
+              type: number
+    Equity:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FinancialInstrumentBase'
+        - type: object
+          properties:
+            countryOfRisk:
+              description: ISO2 country code
+              type: string
+              format: ^[A-Z]{2}$
+    Identification:
+      type: object
+      required:
+        - type
+        - identifier
+      properties:
+        type:
+          type: string
+          enum:
+            - iso3
+            - isin
+            - other
+        identifier:
+          type: string
+    FinancialInstrumentBase:
+      type: object
+      description: Financial instrument entity.
+      properties:
+        type:
+          type: string
+          enum:
+            - Cash
+            - Bond
+            - Equity
+        name:
+          type: string
+        identificationList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identification'
+    FinancialInstrument:
+      type: object
+      description: Financial instrument entity.
+      oneOf:
+        - $ref: '#/components/schemas/Cash'
+        - $ref: '#/components/schemas/Bond'
+        - $ref: '#/components/schemas/Equity'
+      discriminator:
+        propertyName: type
+        mapping:
+          Cash: '#/components/schemas/Cash'
+          Bond: '#/components/schemas/Bond'
+          Equity: '#/components/schemas/Equity'

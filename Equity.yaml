@@ -1,0 +1,9 @@
+type: object
+allOf:
+  - $ref: 'FinancialInstrumentBase.yaml'
+  - type: object
+    properties:
+      countryOfRisk:
+        description: ISO2 country code
+        type: string
+        format: '^[A-Z]{2}$'

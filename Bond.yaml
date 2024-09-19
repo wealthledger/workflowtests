@@ -1,0 +1,13 @@
+type: object
+allOf:
+  - $ref: 'FinancialInstrumentBase.yaml'
+  - type: object
+    properties:
+      currencyOfDenomination:
+        type: string
+        pattern: '^[A-Z]{3}$'
+      maturityDate:
+        type: string
+        format: date
+      coupon:
+        type: number

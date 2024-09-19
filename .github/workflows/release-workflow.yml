@@ -9,18 +9,14 @@ on:
         type: string
         required: true
       apiName:
-        description: 'Customer, Order or Custody'
-        type: string
+        description: 'Build and release Customer, Order or Custody API'
         required: true
-      draft:
-        description: Should a release draft be created? (Otherwise the release will be published immediately)
-        type: boolean
-        default: true
-        required: true
-      artifact:
-        description: Add artifacts to the release. All files from the provided folder(s) are added to the release. Folders or files are seperated by a single whitespace (e.g. file.txt folder/). **Do not use docs/**.
-        type: string
-        required: false
+        default: 'custody'
+        type: choice
+        options:
+          - custody
+          - customer
+          - order
       # force:
       #   description: 'If force is true, already published releases can be overwritten. Caution: This action deletes already published releases and can **not** be undone!'
       #   type: boolean
@@ -30,7 +26,7 @@ on:
     #     required: true
 
 env:
-  REDOCLY_VERSION: '1.10.3'
+  REDOCLY_VERSION: '1.19.0'
 
 jobs:
   variables:

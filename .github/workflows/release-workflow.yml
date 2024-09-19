@@ -2,7 +2,7 @@ name: Release workflow
 # description: Create new OpenWealth release.
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       version:
         description: 'Release version tag (required format: v[mayor].[minor].[bugfix], e.g. v1.3.0)'

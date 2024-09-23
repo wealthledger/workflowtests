@@ -9,15 +9,12 @@ on:
         type: string
         required: true
       apiName:
-        description: 'Build and release Customer, Order or Custody API'
+        description: 'Build and release Instrument API'
         required: true
         default: 'custody'
         type: choice
         options:
-          - custody
-          - customer
-          - order
-          - test
+          - instrument
       # force:
       #   description: 'If force is true, already published releases can be overwritten. Caution: This action deletes already published releases and can **not** be undone!'
       #   type: boolean

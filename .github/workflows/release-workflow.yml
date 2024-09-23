@@ -63,7 +63,7 @@ jobs:
           version=$( echo ${{ github.event.inputs.version }} | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' )  # alternative: '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]'
           apiName=${{ github.event.inputs.apiName }}
           apiFile="${apiName}API-bundled.yaml"
-          tagName ="v${version}-${apiName}"
+          tagName="v${version}-${apiName}"
           repo_name=$( echo ${{ github.repository }} | sed -E "s/^.*\///" )
           echo "REPO_NAME=$repo_name" >> $GITHUB_OUTPUT
           echo "VERSION"=$version >> $GITHUB_OUTPUT

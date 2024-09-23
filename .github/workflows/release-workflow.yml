@@ -122,7 +122,7 @@ jobs:
             echo "Release $release_version does not match version in file $version"
             exit 1
           fi
-          echo "Verions matched" >> $GITHUB_OUTPUT
+          echo "Versions matched"
 
       - name: Delete release (draft) if already exists
         id: delete_release_draft

@@ -17,6 +17,7 @@ on:
           - custody
           - customer
           - order
+          - test
       # force:
       #   description: 'If force is true, already published releases can be overwritten. Caution: This action deletes already published releases and can **not** be undone!'
       #   type: boolean
@@ -34,6 +35,8 @@ jobs:
     outputs:
       REPO_NAME: ${{ steps.var.outputs.REPO_NAME }}
       VERSION: ${{ steps.var.outputs.VERSION }}
+      API_NAME: ${{ steps.var.outputs.API_NAME }}
+      API_FILE: ${{ steps.var.outputs.API_FILE }}
       BASE_BRANCH: ${{ steps.var.outputs.BASE_BRANCH }} # branch to release, only main supported
       RELEASE_NAME: ${{ steps.var.outputs.RELEASE_NAME }}
       RELEASE_TAG: ${{ steps.var.outputs.RELEASE_TAG }}
@@ -58,9 +61,13 @@ jobs:
         id: var
         run: |
           version=$( echo ${{ github.event.inputs.version }} | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' )  # alternative: '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]'
+          apiName=${{ github.event.inputs.apiName }}
+          apiFile="${apiName}API-bundled.yaml"
           repo_name=$( echo ${{ github.repository }} | sed -E "s/^.*\///" )
           echo "REPO_NAME=$repo_name" >> $GITHUB_OUTPUT
           echo "VERSION"=$version >> $GITHUB_OUTPUT
+          echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
+          echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
           echo "BASE_BRANCH=main" >> $GITHUB_OUTPUT
           echo "RELEASE_NAME=\"$repo_name Release $version\"" >> $GITHUB_OUTPUT
           echo "RELEASE_TAG=v$version" >> $GITHUB_OUTPUT
@@ -94,14 +101,10 @@ jobs:
       - name: Get release note content from wiki
         id: release_note_body
         run: |
-          regex="### Release ${{ needs.variables.outputs.RELEASE_TAG }}[[:print:]]*[[:cntrl:]]{2}([^-][[:print:]]*[[:cntrl:]]{1,2})*(- [[:print:]]*[[:cntrl:]])+[[:cntrl:]]{2}"  ## matches section + optional text + at least one bullet point
-          content=$(grep -ozE "$regex" wiki/Roadmap.md | tr "\0" "\n" | tail -n +3)
-          # abort if content is empty --> wiki page must be present before release
-          if [ -z "$content" ]; then
-            echo "Found no data for ${{ needs.variables.outputs.RELEASE_NAME }} at wiki/Roadmap (${{ github.repository }}). Please create a section <<Release ${{ needs.variables.outputs.RELEASE_TAG }}>> and fill in details for the release by following the instructions at the .github Wiki. A template can be found at https://github.com/swissfintechinnovations/.github/wiki/Release-Roadmap-Example."
-            exit 1
-          fi
-          body="$content"$'\n\n# \n\n'
+          # regex="### Release ${{ needs.variables.outputs.RELEASE_TAG }}[[:print:]]*[[:cntrl:]]{2}([^-][[:print:]]*[[:cntrl:]]{1,2})*(- [[:print:]]*[[:cntrl:]])+[[:cntrl:]]{2}"  ## matches section + optional text + at least one bullet point
+          # content=$(grep -ozE "$regex" wiki/Roadmap.md | tr "\0" "\n" | tail -n +3)
+
+          body="## Release ${{ needs.variables.outputs.RELEASE_TAG }}"$'\n\n# \n\n'
           echo "BODY=${body//$'\n'/'\n'}" >> $GITHUB_OUTPUT
 
       - name: Check file version
@@ -111,80 +114,13 @@ jobs:
 
           git checkout -q origin/$BASE_BRANCH
           release_version=${{ needs.variables.outputs.VERSION }}
-          versions=$(grep -Eo 'version: [0-9]+\.[0-9]+\.[0-9]+' *.yaml | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-          versions_outdated='false'
-          for version in $versions; do
-              if [[ $version != $release_version ]]; then
-                  versions_outdated='true'
-                  break
-              fi
-          done
-          echo "VERSIONS_OUTDATED=$versions_outdated" >> $GITHUB_OUTPUT
 
-      - name: Switch to release branch
-        id: create_release_branch
-        if: steps.check_version.outputs.VERSIONS_OUTDATED == 'true'
-        run: |
-          RELEASE_BRANCH_NAME=${{ needs.variables.outputs.RELEASE_BRANCH_NAME }}
-
-          git config --global user.name "openwealth bot"
-          git config --global user.email "dev@openwealth.ch"
-
-          git checkout $RELEASE_BRANCH_NAME 2>/dev/null || git checkout -b $RELEASE_BRANCH_NAME  # checkout branch or create new one if not exists
-
-      - name: Update version in files
-        id: update_version
-        if: steps.check_version.outputs.VERSIONS_OUTDATED == 'true'
-        run: |
-          VERSION=${{ needs.variables.outputs.VERSION }}
-          RELEASE_NAME=${{ needs.variables.outputs.RELEASE_NAME }}
-          BASE_BRANCH=${{ needs.variables.outputs.BASE_BRANCH }}
-          RELEASE_BRANCH_NAME=${{ needs.variables.outputs.RELEASE_BRANCH_NAME }}
-
-          echo "Prepare Release $RELEASE_NAME: update version number in yaml files"
-          git checkout -q $RELEASE_BRANCH_NAME
-          git fetch -q origin
-          git reset --hard origin/$BASE_BRANCH
-
-          sed -E -i "s/version: [0-9]+\.[0-9]+\.[0-9]+/version: $VERSION/" *.yaml
-
-          git add -u .
-          # commit only if there was changes in the yaml files
-          git diff --staged --quiet || git commit -m "Automated version update"
-          # git commit --quiet --allow-empty -m '[skip-workflow]'
-          git push --quiet --set-upstream origin $RELEASE_BRANCH_NAME
-
-      - name: 'Rollback: Delete Branch'
-        if: failure() && steps.update_version.outcome == 'failure'
-        run: |
-          git checkout -q ${{ needs.variables.outputs.BASE_BRANCH }}
-          git branch -D ${{ needs.variables.outputs.RELEASE_BRANCH_NAME }}
-          git push origin --delete ${{ needs.variables.outputs.RELEASE_BRANCH_NAME }}
-
-      - name: Create and merge Pull Request
-        id: create_pr
-        if: steps.check_version.outputs.VERSIONS_OUTDATED == 'true'
-        run: |
-          BASE_BRANCH=${{ needs.variables.outputs.BASE_BRANCH }}
-
-          response=$(gh pr create -B $BASE_BRANCH -H ${{ needs.variables.outputs.RELEASE_BRANCH_NAME }} --title 'Automated version update to version ${{ needs.variables.outputs.VERSION }}' --body 'Created by Github action (release workflow)')
-          number=$(echo "$response" | grep -oE '[0-9]+$')  # parse GitHub PR link to extract PR number
-          echo "PR_NUMBER=$number" >> $GITHUB_OUTPUT
-
-          sleep 2
-
-          # gh pr review $number --approve  # can not approve own PR
-          gh pr merge $number --admin --rebase --delete-branch --body "Automated version update"  # force merge trough --admin flag since PR is not approved
-          git checkout $BASE_BRANCH
-        env:
-          GITHUB_TOKEN: ${{ secrets.SFTI_BOT_TOKEN }}
-
-      - name: 'Rollback: Delete PR'
-        if: failure() && steps.create_pr.outcome == 'failure'
-        run: |
-          gh pr close ${{ steps.create_pr.outputs.PR_NUMBER }} -c "Couldn't merge PR automatically" --delete-branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version=$(sed -n 's/version: \([0-9]+\.[0-9]+\.[0-9]+\)/\1/p' ${{ needs.variables.outputs.API_FILE }})
+          if [[ $version != $release_version ]]; then
+            echo "Release $release_version does not match version in file $version"
+            exit 1
+          fi
+          echo "Verions matched" >> $GITHUB_OUTPUT
 
       - name: Delete release (draft) if already exists
         id: delete_release_draft
@@ -207,23 +143,19 @@ jobs:
 
           if [[ "$is_draft" == 'false' ]]; then
             echo "Release is published."
-            if [[ ${{ github.event.inputs.force }} == true ]]; then
-              commit_id=$(git rev-list -n 1 "refs/tags/$TAG")
-              echo $commit_id
-              git tag -d $TAG
-              git push origin ":refs/tags/$TAG"
-              echo "Force Flag is set! Deleted tag $TAG at commit ID $commit_id."
-            fi
-            if [[ ${{ github.event.inputs.force }} == false ]]; then
-              echo "Release $TAG already exists. Please verify that the version entered is correct. Set the force flag to overwrite the release."
-              exit 1
-            fi
+            commit_id=$(git rev-list -n 1 "refs/tags/$TAG")
+            echo $commit_id
+            git tag -d $TAG
+            git push origin ":refs/tags/$TAG"
+            echo "Force Flag is set! Deleted tag $TAG at commit ID $commit_id."
           fi
 
-          if [[ -n "$RELEASE_ID" ]]; then
-            # Delete the existing release draft
-            curl -sS -X DELETE -H "Authorization: Bearer $ACCESS_TOKEN" "https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID"
-            echo "Deleted release \"$RELEASE_ID\" with ID $RELEASE_ID"
+          if [[ "$is_draft" == 'true' ]]; then
+            if [[ -n "$RELEASE_ID" ]]; then
+              # Delete the existing release draft
+              curl -sS -X DELETE -H "Authorization: Bearer $ACCESS_TOKEN" "https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID"
+              echo "Deleted release \"$RELEASE_ID\" with ID $RELEASE_ID"
+            fi
           fi
 
       - name: Create release draft
@@ -275,11 +207,9 @@ jobs:
         run: |
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
-          for file in $(ls *.yaml | sed 's/\.yaml$//'); do
-            doc_file=$file-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
-            npx --silent @redocly/cli@$REDOCLY_VERSION build-docs --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file $file.yaml
-            echo "Created documentation: $doc_file"
-          done;
+          doc_file=$file-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
+          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file ${{ steps.var.outputs.API_FILE }}
+          echo "Created documentation: $doc_file"
 
       - uses: actions/upload-artifact@v4
         id: upload_artifact
@@ -368,36 +298,3 @@ jobs:
           REPO_NAME=${{ github.repository }}
           RELEASE_ID=${{ needs.release.outputs.RELEASE_ID }}
           curl -sS -X DELETE -H "Authorization: Bearer $ACCESS_TOKEN" "https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID"
-
-  publish:
-    runs-on: ubuntu-latest
-    needs:
-      - variables
-      - release
-      - artifact
-    if: github.event.inputs.draft == 'false'
-
-    steps:
-      - name: Publish release
-        id: publish_release
-        run: |
-          ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          REPO_NAME=${{ github.repository }}
-          RELEASE_ID=${{ needs.release.outputs.RELEASE_ID }}
-
-          RESPONSE=$(curl -sS -i -X PATCH \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID" \
-            -d '{
-              "prerelease": false,
-              "draft": false,
-              "make_latest": "true"
-            }')
-
-          if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 200 ]]; then
-            echo "Failed to publish release. Received response from GitHub API:"
-            echo ""
-            echo "$RESPONSE"
-            exit 1
-          fi

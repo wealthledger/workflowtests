@@ -208,9 +208,10 @@ jobs:
       - name: create API documentation
         run: |
           export NODE_NO_WARNINGS=1
+          echo "${{ needs.variables.outputs.API_FILE }}"
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
-          doc_file=${{ steps.var.outputs.API_FILE }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
-          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ steps.var.outputs.API_FILE }} --output ${{ needs.variables.outputs.DOC_PATH }}/$doc_file
+          doc_file=${{ needs.variables.outputs.API_FILE }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
+          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file
           echo "Created documentation: $doc_file"
 
       - uses: actions/upload-artifact@v4

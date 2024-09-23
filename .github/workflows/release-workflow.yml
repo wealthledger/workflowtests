@@ -72,7 +72,7 @@ jobs:
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
           echo "BASE_BRANCH=main" >> $GITHUB_OUTPUT
           echo "RELEASE_NAME=\"$repo_name Release $version\"" >> $GITHUB_OUTPUT
-          echo "RELEASE_TAG="$tagName" >> $GITHUB_OUTPUT
+          echo "RELEASE_TAG="$tagName >> $GITHUB_OUTPUT
           echo "RELEASE_BRANCH_NAME=release/$version" >> $GITHUB_OUTPUT
           echo "RELEASE_NOTES=RELEASE.md" >> $GITHUB_OUTPUT
           echo "RELEASE_ASSETS_NAME=artifact" >> $GITHUB_OUTPUT

@@ -62,7 +62,7 @@ jobs:
         run: |
           version=$( echo ${{ github.event.inputs.version }} | grep -oP '[0-9]+\.[0-9]+\.[0-9]+' )  # alternative: '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]'
           apiName=${{ github.event.inputs.apiName }}
-          apiFile="${apiName}API-bundled.yaml"
+          apiFile="${apiName^}/${apiName}API.yaml"
           tagName="v${version}-${apiName}"
           repo_name=$( echo ${{ github.repository }} | sed -E "s/^.*\///" )
           echo "REPO_NAME=$repo_name" >> $GITHUB_OUTPUT
@@ -103,7 +103,7 @@ jobs:
         id: release_note_body
         run: |
           # regex="### Release ${{ needs.variables.outputs.RELEASE_TAG }}[[:print:]]*[[:cntrl:]]{2}([^-][[:print:]]*[[:cntrl:]]{1,2})*(- [[:print:]]*[[:cntrl:]])+[[:cntrl:]]{2}"  ## matches section + optional text + at least one bullet point
-          # content=$(grep -ozE "$regex" wiki/Roadmap.md | tr "\0" "\n" | tail -n +3)
+          # content=$(grep -ozE "$regex" wiki/Releases.md | tr "\0" "\n" | tail -n +3)
 
           body="## Release ${{ needs.variables.outputs.RELEASE_TAG }}"$'\n\n# \n\n'
           echo "BODY=${body//$'\n'/'\n'}" >> $GITHUB_OUTPUT
@@ -145,19 +145,15 @@ jobs:
           is_draft=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID | jq '.draft')
 
           if [[ "$is_draft" == 'false' ]]; then
-            echo "Release is published."
-            commit_id=$(git rev-list -n 1 "refs/tags/$TAG")
-            echo $commit_id
-            git tag -d $TAG
-            git push origin ":refs/tags/$TAG"
-            echo "Force Flag is set! Deleted tag $TAG at commit ID $commit_id."
+            echo "Release $RELEASE_NAME has already been published."
+            exit 1
           fi
 
           if [[ "$is_draft" == 'true' ]]; then
             if [[ -n "$RELEASE_ID" ]]; then
               # Delete the existing release draft
               curl -sS -X DELETE -H "Authorization: Bearer $ACCESS_TOKEN" "https://api.github.com/repos/$REPO_NAME/releases/$RELEASE_ID"
-              echo "Deleted release \"$RELEASE_ID\" with ID $RELEASE_ID"
+              echo "Deleted release \"$RELEASE_NAME\" with ID $RELEASE_ID"
             fi
           fi
 
@@ -212,7 +208,6 @@ jobs:
       - name: create API documentation
         run: |
           export NODE_NO_WARNINGS=1
-          echo "${{ needs.variables.outputs.API_FILE }}"
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
           doc_file=${{ needs.variables.outputs.API_FILE }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
           npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file

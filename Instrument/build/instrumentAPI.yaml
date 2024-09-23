@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Financial Instrument Sample Polymorph
-  version: 1.0.0
+  version: 1.0.1
   description: This is the description
   contact:
     email: openwealth@synpulse.com
@@ -28,19 +28,19 @@ paths:
                   $ref: '#/components/schemas/FinancialInstrument'
               examples:
                 Cash:
-                  summary: A foo example
+                  summary: Cash
                   value:
                     name: Swiss Franks
                     currency: CHF
                 Equity:
-                  summary: A foo example
+                  summary: Equity
                   value:
                     name: Apple Inc.
                     identificationList:
                       - type: isin
                         identifier: US0378331005
                 Bond:
-                  summary: A bar example
+                  summary: Bond
                   value:
                     name: 0,5% 18/32 Swiss Gov.
                     maturityDate: '2032-06-27'

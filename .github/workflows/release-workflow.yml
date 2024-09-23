@@ -223,16 +223,6 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
-      - name: Upload release artifact
-        uses: actions/upload-release-asset@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./src/output/build.zip # Path to the file in your repository
-          asset_name: build.zip # Name to be shown on release
-          asset_content_type: application/zip # Content type of the file
-
       - name: Upload docu artifacts
         run: |
           echo 'Uploaded artifacts with ID ${{ steps.upload_artifact.outputs.artifact-id }}.'

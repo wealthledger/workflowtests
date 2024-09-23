@@ -206,9 +206,13 @@ jobs:
         run: |
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
-          doc_file=${{ needs.variables.outputs.API_FILE }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
+          doc_file=${{ needs.variables.outputs.API_NAME }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
           npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file
           echo "Created documentation: $doc_file"
+
+          apiFile=./${{ needs.variables.outputs.API_FILE }}
+          filename="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
+          cp "$apiFile" "${{ needs.variables.outputs.DOC_PATH }}${filename}"
 
       - uses: actions/upload-artifact@v4
         id: upload_artifact
@@ -218,6 +222,16 @@ jobs:
           retention-days: 1
           if-no-files-found: error
           overwrite: true
+
+      - name: Upload release artifact
+        uses: actions/upload-release-asset@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./src/output/build.zip # Path to the file in your repository
+          asset_name: build.zip # Name to be shown on release
+          asset_content_type: application/zip # Content type of the file
 
       - name: Upload docu artifacts
         run: |

@@ -115,7 +115,9 @@ jobs:
           git checkout -q origin/$BASE_BRANCH
           release_version=${{ needs.variables.outputs.VERSION }}
 
-          version=$(sed -n 's/version: \([0-9]+\.[0-9]+\.[0-9]+\)/\1/p' ${{ needs.variables.outputs.API_FILE }})
+          version=$(grep -Eo 'version: [0-9]+\.[0-9]+\.[0-9]+' ${{ needs.variables.outputs.API_FILE }}| grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          echo "Extracted version: $version"
+
           if [[ $version != $release_version ]]; then
             echo "Release $release_version does not match version in file $version"
             exit 1

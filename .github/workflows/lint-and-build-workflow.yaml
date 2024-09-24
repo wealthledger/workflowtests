@@ -28,7 +28,7 @@ jobs:
         id: api_in_scope_check
         run: |
           apiInScopeRegex="instrument-"
-          if [[ ! "${{ github.ref }}" =~ $apiInScopeRegex ]]; then
+          if [[ ! "${{ github.head_ref }}" =~ $apiInScopeRegex ]]; then
             echo "Branch name does not match naming convention. Branch name must start with 'instrument-'."
             exit 1
           fi
@@ -36,8 +36,7 @@ jobs:
       - name: Extract variables for Release action # Adjust names only here
         id: var
         run: |
-          apiNameRegex="(word1|word2|word3)--"
-          apiName=$(grep -Eo '(instrument)-' ${{ github.ref }} | grep -Eo 'instrument')
+          apiName=$(grep -Eo '(instrument)-' ${{ github.head_ref }} | grep -Eo 'instrument')
           apiFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
@@ -51,7 +50,7 @@ jobs:
 
       - name: Display Branch Information
         run: |
-          echo "Checked out branch: ${{ github.ref }}"
+          echo "Checked out branch: ${{ github.head_ref }}"
 
       - uses: actions/setup-node@v4
         with:

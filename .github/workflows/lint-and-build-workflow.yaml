@@ -73,7 +73,7 @@ jobs:
       # Push the changes back to the head branch
       - name: Push changes
         run: |
-          git push origin HEAD:${{ github.ref }}  # Push to the branch that triggered the workflow
+          git push origin HEAD:${{ github.head_ref }}  # Push to the branch that triggered the workflow
 
       # Run the Redocly lint command
       - name: Run Redocly lint

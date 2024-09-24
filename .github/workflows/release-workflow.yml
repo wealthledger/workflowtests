@@ -210,7 +210,7 @@ jobs:
         run: |
           ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}
           REPO_NAME=${{ github.repository }}
-          RELEASE_ID=${{ needs.release.outputs.RELEASE_ID }}
+          RELEASE_ID=${{ steps.create_release_draft.outputs.RELEASE_ID }}
 
           RELEASE_ASSET=${{ steps.create_api_docu.outputs.doc_file }}
 

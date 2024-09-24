@@ -195,13 +195,9 @@ jobs:
         run: |
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
-          doc_file=${{ needs.variables.outputs.API_NAME }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
+          doc_file=${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.html
           npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output $doc_file
           echo "Created documentation: $doc_file"
-
-          apiFile=./${{ needs.variables.outputs.API_FILE }}
-          filename="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
-          cp "$apiFile" "${{ needs.variables.outputs.DOC_PATH }}${filename}"
 
           echo "doc_file=$doc_file" >> $GITHUB_OUTPUT
 
@@ -212,13 +208,30 @@ jobs:
           REPO_NAME=${{ github.repository }}
           RELEASE_ID=${{ steps.create_release_draft.outputs.RELEASE_ID }}
 
-          RELEASE_ASSET=${{ steps.create_api_docu.outputs.doc_file }}
+          RELEASE_ASSET_DOCU=${{ steps.create_api_docu.outputs.doc_file }}
+          RELEASE_ASSET_API=${{ steps.create_api_docu.outputs.doc_file }}
 
           RESPONSE=$(curl -sS -i -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary "@$RELEASE_ASSET" \
-            https://uploads.github.com/repos/$REPO_NAME/releases/$RELEASE_ID/assets?name=$RELEASE_ASSET)
+            --data-binary "@$RELEASE_ASSET_DOCU" \
+            https://uploads.github.com/repos/$REPO_NAME/releases/$RELEASE_ID/assets?name=$RELEASE_ASSET_DOCU)
+
+          if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
+            echo "Failed to upload release asset $RELEASE_ASSET_DOCU. Received response from GitHub API:"
+            echo ""
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          RELEASE_ASSET_API="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
+          cp ./${{ needs.variables.outputs.API_FILE }} "${RELEASE_ASSET_API}"
+
+          RESPONSE=$(curl -sS -i -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@$RELEASE_ASSET_API" \
+            https://uploads.github.com/repos/$REPO_NAME/releases/$RELEASE_ID/assets?name=$RELEASE_ASSET_API)
 
           if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
             echo "Failed to upload release asset $RELEASE_ASSET. Received response from GitHub API:"

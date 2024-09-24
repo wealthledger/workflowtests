@@ -24,7 +24,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate branch name cnvention parameters
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Validate branch name convention parameters
         id: api_in_scope_check
         run: |
           apiInScopeRegex="instrument-"
@@ -40,9 +43,6 @@ jobs:
           apiFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
-
-      - name: Checkout Repo
-        uses: actions/checkout@v4
 
       - name: Check if the Push is Part of a PR to Main
         if: ${{ github.event_name == 'push' && github.event.pull_request != null && github.base_ref == 'refs/heads/main' }}

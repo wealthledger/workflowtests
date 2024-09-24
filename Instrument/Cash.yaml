@@ -1,9 +1,10 @@
 type: object
-allOf: # Combines the main `FinancialInstrument` schema with `Cash`-specific properties
+description: Schema of a cash instrument.
+allOf:
   - $ref: 'FinancialInstrumentBase.yaml'
   - type: object
-    # all other properties specific to a `Cash`
     properties:
       currency:
+        description: Currency code.
         type: string
         pattern: '^[A-Z]{3}$'

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Financial Instrument Sample Polymorph
   version: 1.0.3
-  description: 'This is the description'
+  description: This is the description.
   contact:
     email: openwealth@synpulse.com
   license:
@@ -10,16 +10,19 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
   - description: Sample Server URL
-    url: https://openwealth.ch/
+    url: https://openwealth.ch
+security: []
+tags: []
 externalDocs:
   description: Find out more about OpenWealth API specifications.
   url: https://openwealth.ch/
 paths:
   /financial-instruments:
     get:
+      summary: This is a summary
       responses:
         '200':
-          description: gets list of instruments
+          description: gets list of instruments.
           content:
             application/json:
               schema:

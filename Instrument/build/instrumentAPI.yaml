@@ -51,6 +51,7 @@ components:
   schemas:
     Cash:
       type: object
+      description: Schema of a cash instrument.
       allOf:
         - $ref: '#/components/schemas/FinancialInstrumentBase'
         - type: object
@@ -59,12 +60,14 @@ components:
               type: string
               pattern: ^[A-Z]{3}$
     Bond:
-      type: object
+      type: object$
+      description: Schema of a bond instrument.
       allOf:
         - $ref: '#/components/schemas/FinancialInstrumentBase'
         - type: object
           properties:
             currencyOfDenomination:
+              description: currency of denomination.
               type: string
               pattern: ^[A-Z]{3}$
             maturityDate:
@@ -74,6 +77,7 @@ components:
               type: number
     Equity:
       type: object
+      description: Schema of a equity instrument.
       allOf:
         - $ref: '#/components/schemas/FinancialInstrumentBase'
         - type: object

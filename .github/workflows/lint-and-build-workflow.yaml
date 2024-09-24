@@ -1,10 +1,14 @@
 name: OpenAPI lint workflow
 # description: Check specifications for SFTI's openapi rules.
 on:
-  pull_request:
   push:
     branches:
-      - main
+      - '**' # This catches pushes to any branch. You can specify a branch pattern if needed.
+  pull_request:
+    types: [opened, synchronize, reopened] # Trigger on PR actions like opening or updating a PR
+    branches:
+      - main # Only triggers for pull requests targeting the main branch
+
   workflow_dispatch:
     inputs:
       apiName:
@@ -20,16 +24,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate branch name cnvention parameters
+        id: api_in_scope_check
+        run: |
+          apiInScopeRegex="instrument-"
+          if [[ ! "${{ github.ref }}" =~ $apiInScopeRegex ]]; then
+            echo "Branch name does not match naming convention. Branch name must start with 'instrument-'."
+            exit 1
+          fi
+
       - name: Extract variables for Release action # Adjust names only here
         id: var
         run: |
-          apiName=${{ github.event.inputs.apiName }}
+          apiNameRegex="(word1|word2|word3)--"
+          apiName=$(grep -Eo '(instrument)-' ${{ github.ref }} | grep -Eo 'instrument')
           apiFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
 
       - name: Checkout Repo
         uses: actions/checkout@v4
+
+      - name: Check if the Push is Part of a PR to Main
+        if: ${{ github.event_name == 'push' && github.event.pull_request != null && github.base_ref == 'refs/heads/main' }}
+        run: echo "This push is part of a pull request."
+
+      - name: Display Branch Information
+        run: |
+          echo "Checked out branch: ${{ github.ref }}"
 
       - uses: actions/setup-node@v4
         with:
@@ -39,4 +61,4 @@ jobs:
         run: npm install -g @redocly/cli
 
       - name: Run Redocly lint
-        run: redocly lint --config=./.github/redocly.yaml --format=summary ${{ steps.var.outputs.API_FILE }}
+        run: redocly lint --config=.github/redocly.yaml --format=stylish ${{ steps.var.outputs.API_FILE }}

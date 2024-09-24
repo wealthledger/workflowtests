@@ -11,8 +11,8 @@ info:
 servers:
   - description: Sample Server URL
     url: https://openwealth.ch
-tags: []
 security: []
+tags: []
 externalDocs:
   description: Find out more about OpenWealth API specifications.
   url: https://openwealth.ch/

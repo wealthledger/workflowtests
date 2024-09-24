@@ -191,6 +191,7 @@ jobs:
           npm install -g @redocly/cli@$REDOCLY_VERSION
 
       - name: create API documentation
+        id: create_api_docu
         run: |
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
@@ -202,7 +203,7 @@ jobs:
           filename="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
           cp "$apiFile" "${{ needs.variables.outputs.DOC_PATH }}${filename}"
 
-          echo "doc_file=${{ needs.variables.outputs.DOC_PATH }}$doc_file" >> $GITHUB_OUTPUT
+          echo "doc_file=$doc_file" >> $GITHUB_OUTPUT
 
       - name: Upload doc file to release assets
         id: upload_documentation
@@ -211,7 +212,7 @@ jobs:
           REPO_NAME=${{ github.repository }}
           RELEASE_ID=${{ needs.release.outputs.RELEASE_ID }}
 
-          RELEASE_ASSET=${{ steps.create_release_draft.outputs.doc_file }}
+          RELEASE_ASSET=${{ steps.create_api_docu.outputs.doc_file }}
 
           RESPONSE=$(curl -sS -i -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \

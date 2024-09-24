@@ -218,12 +218,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - release
-      - api-docu
-      - artifact
     if: |
       always() &&
-      (needs.api-docu.result == 'failure' && needs.release.result == 'success' ||
-      needs.artifact.result == 'failure' && needs.release.result == 'success')
+      (needs.release.result == 'error')
     steps:
       - name: Rollback on error, delete release
         run: |

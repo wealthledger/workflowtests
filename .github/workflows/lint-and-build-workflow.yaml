@@ -6,23 +6,16 @@ on:
     branches:
       - main # Only triggers for pull requests targeting the main branch
 
-  workflow_dispatch:
-    inputs:
-      apiName:
-        type: string
-        default: 'instrument'
-        description: 'Files to be linted (list of files sperated by a whitespace). Default: *.yaml'
-
 env:
   REDOCLY_VERSION: '1.25.3'
 
-jobs:
-  lint-openapi:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
+  pull-requests: write
 
-    permissions:
-      contents: write
-      pull-requests: write
+jobs:
+  bundle-and-lint-api:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo

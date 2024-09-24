@@ -182,18 +182,6 @@ jobs:
 
           echo "RELEASE_ID=$(echo $RESPONSE | grep -o -z '\{.*\}' | jq -r '.id')" >> $GITHUB_OUTPUT
 
-  api-docu:
-    runs-on: ubuntu-latest
-    needs:
-      - variables
-      - release
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: latest
@@ -207,85 +195,24 @@ jobs:
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
           doc_file=${{ needs.variables.outputs.API_NAME }}-${{ needs.variables.outputs.VERSION }}-doc-${{ github.sha }}.html
-          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output ${{ needs.variables.outputs.DOC_PATH }}$doc_file
+          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output $doc_file
           echo "Created documentation: $doc_file"
 
           apiFile=./${{ needs.variables.outputs.API_FILE }}
           filename="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
           cp "$apiFile" "${{ needs.variables.outputs.DOC_PATH }}${filename}"
 
-      - uses: actions/upload-artifact@v4
-        id: upload_artifact
+          echo "doc_file=${{ needs.variables.outputs.DOC_PATH }}$doc_file" >> $GITHUB_OUTPUT
+
+      - name: Upload doc file to release assets
+        uses: actions/upload-release-asset@v3
         with:
-          name: ${{ needs.variables.outputs.DOC_ARTIFACT_NAME }}
-          path: ${{ needs.variables.outputs.DOC_PATH }}
-          retention-days: 1
-          if-no-files-found: error
-          overwrite: true
-
-      - name: Upload docu artifacts
-        run: |
-          echo 'Uploaded artifacts with ID ${{ steps.upload_artifact.outputs.artifact-id }}.'
-
-  artifact:
-    runs-on: ubuntu-latest
-    needs:
-      - variables
-      - api-docu
-      - release
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.variables.outputs.DOC_ARTIFACT_NAME }}
-          path: ${{ needs.variables.outputs.DOC_PATH }}
-
-      - name: Upload artifacts
-        id: upload_artifact
-        run: |
-          ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          REPO_NAME=${{ github.repository }}
-          RELEASE_ID=${{ needs.release.outputs.RELEASE_ID }}
-          RELEASE_ASSETS_NAME=${{ needs.variables.outputs.RELEASE_ASSETS_NAME }}
-
-          RELEASE_ASSETS_ZIP=$RELEASE_ASSETS_NAME.zip
-          RELEASE_ASSETS_TARGZ=$RELEASE_ASSETS_NAME.tar.gz
-
-          zip -qr --must-match $RELEASE_ASSETS_ZIP ${{ needs.variables.outputs.DOC_PATH }} ${{ github.event.inputs.artifact}}
-
-          RESPONSE=$(curl -sS -i -X POST \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary "@$RELEASE_ASSETS_ZIP" \
-            https://uploads.github.com/repos/$REPO_NAME/releases/$RELEASE_ID/assets?name=$RELEASE_ASSETS_ZIP)
-
-          if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
-            echo "Failed to upload release asset $RELEASE_ASSETS_ZIP. Received response from GitHub API:"
-            echo ""
-            echo "$RESPONSE"
-            exit 1
-          fi
-
-          tar -czf $RELEASE_ASSETS_TARGZ ${{ needs.variables.outputs.DOC_PATH }} ${{ github.event.inputs.artifact}}
-
-          RESPONSE=$(curl -sS -i -X POST \
-            -H "Authorization: Bearer $ACCESS_TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary "@$RELEASE_ASSETS_TARGZ" \
-            https://uploads.github.com/repos/$REPO_NAME/releases/$RELEASE_ID/assets?name=$RELEASE_ASSETS_TARGZ)
-
-          if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
-            echo "Failed to upload release asset $RELEASE_ASSETS_TARGZ. Received response from GitHub API:"
-            echo ""
-            echo "$RESPONSE"
-            exit 1
-          fi
+          upload_url: ${{ steps.create_release_draft.outputs.upload_url }}
+          asset_path: ${{ steps.create_release_draft.outputs.doc_file }}
+          asset_name: ${{ steps.create_release_draft.outputs.doc_file }}
+          asset_content_type: text/html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rollback:
     runs-on: ubuntu-latest

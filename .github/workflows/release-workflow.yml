@@ -205,7 +205,7 @@ jobs:
           echo "doc_file=${{ needs.variables.outputs.DOC_PATH }}$doc_file" >> $GITHUB_OUTPUT
 
       - name: Upload doc file to release assets
-        uses: actions/upload-release-asset@v3
+        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release_draft.outputs.upload_url }}
           asset_path: ${{ steps.create_release_draft.outputs.doc_file }}

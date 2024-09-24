@@ -5,6 +5,6 @@ allOf:
   - type: object
     properties:
       countryOfRisk:
-        description: ISO2 country code
+        description: ISO2 country code.
         type: string
-        format: '^[A-Z]{2}$'
+        pattern: '^[A-Z]{2}$'

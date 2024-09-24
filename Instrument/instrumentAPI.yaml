@@ -10,18 +10,19 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
   - description: Sample Server URL
-    url: https://openwealth.ch/
+    url: https://openwealth.ch
+tags: []
+security: []
 externalDocs:
   description: Find out more about OpenWealth API specifications.
   url: https://openwealth.ch/
-tags: []
-security: []
 paths:
   /financial-instruments:
     get:
+      summary: This is a summary
       responses:
         '200':
-          description: gets list of instruments
+          description: gets list of instruments.
           content:
             application/json:
               schema:

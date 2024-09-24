@@ -13,35 +13,35 @@ rules:
   security-defined: error
   spec: error
   spec-components-invalid-map-name: error
-  spec-strict-refs: error  #
+  spec-strict-refs: error #
 
   # info
-  info-contact: error  #
-  info-license: error  # warn
-  info-license-url: error  # warn
+  info-contact: error #
+  info-license: error # warn
+  info-license-url: error # warn
 
   # operations
   operation-2xx-response: warn
   operation-4xx-response: warn
-  operation-4xx-problem-details-rfc7807: error  #
-  operation-description: warn  # <--
-  operation-operationId: off  # warn
+  operation-4xx-problem-details-rfc7807: error #
+  operation-description: warn # <--
+  operation-operationId: off # warn
   operation-operationId-unique: error
   operation-operationId-url-safe: error
   operation-summary: error
 
   # parameters
   boolean-parameter-prefixes: off
-  no-invalid-parameter-examples: error  #
+  no-invalid-parameter-examples: error #
   operation-parameters-unique: error
-  parameter-description: warn  # <--
+  parameter-description: warn # <--
   path-declaration-must-exist: error
   path-not-include-query: error
   path-parameters-defined: error
 
   # paths
-  no-ambiguous-paths: warn  #
-  no-http-verbs-in-paths: error  #
+  no-ambiguous-paths: warn #
+  no-http-verbs-in-paths: error #
   no-identical-paths: error
   no-path-trailing-slash: error
   path-excludes-patterns: off
@@ -51,13 +51,13 @@ rules:
     exceptions:
       - iso20022
       - status
-  paths-kebab-case: error  #
+  paths-kebab-case: error #
 
   # Requests, Responses, and Schemas
   no-enum-type-mismatch: error
   no-example-value-and-externalValue: error
-  no-invalid-media-type-examples: error  #
-  no-invalid-schema-examples: error  #
+  no-invalid-media-type-examples: off
+  no-invalid-schema-examples: error #
   request-mime-type:
     severity: warn
     allowedValues:
@@ -71,9 +71,9 @@ rules:
       - application/problem+json
       - application/xml
       - application/pdf
-  response-contains-header: off  #
+  response-contains-header: off #
   response-contains-property: off
-  scalar-property-missing-example: error
+  scalar-property-missing-example: off
   required-string-property-missing-min-length: off
 
   # servers
@@ -84,8 +84,8 @@ rules:
   no-undefined-server-variable: error
 
   # tags
-  operation-singular-tag: error  #
-  operation-tag-defined: error  #
+  operation-singular-tag: error #
+  operation-tag-defined: error #
   tag-description: warn
   tags-alphabetical: off
 

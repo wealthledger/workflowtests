@@ -2,14 +2,17 @@ type: object
 description: Financial instrument entity.
 properties:
   type:
+    description: Type of the financial instrument.
     type: string
     enum:
       - Cash
       - Bond
       - Equity
   name:
+    description: Name of the financial instrument.
     type: string
   identificationList:
+    description: List of identification key value pairs.
     type: array
     items:
       $ref: 'Identification.yaml'

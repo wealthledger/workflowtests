@@ -39,7 +39,9 @@ jobs:
       - name: Extract variables for Release action # Adjust names only here
         id: var
         run: |
-          apiName=$(echo "${{ github.head_ref }}" | grep -o '(instrument)-'  | grep -o 'instrument')
+          apiName=$(echo "${{ github.head_ref }}" | grep -o 'instrument-'  | grep -o 'instrument')
+          echo "Head branch: ${{ github.head_ref }}"
+          echo "Api name: $apiName"
           apiFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT

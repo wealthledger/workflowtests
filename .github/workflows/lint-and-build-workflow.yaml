@@ -1,9 +1,6 @@
 name: OpenAPI lint workflow
 # description: Check specifications for SFTI's openapi rules.
 on:
-  push:
-    branches:
-      - '**' # This catches pushes to any branch. You can specify a branch pattern if needed.
   pull_request:
     types: [opened, synchronize, reopened] # Trigger on PR actions like opening or updating a PR
     branches:
@@ -49,10 +46,6 @@ jobs:
       - name: Check if the Push is Part of a PR to Main
         if: ${{ github.event_name == 'push' && github.event.pull_request != null && github.base_ref == 'refs/heads/main' }}
         run: echo "This push is part of a pull request."
-
-      - name: Display Branch Information
-        run: |
-          echo "Checked out branch: ${{ github.head_ref }}"
 
       - uses: actions/setup-node@v4
         with:

@@ -1,4 +1,4 @@
-name: OpenAPI lint workflow
+name: Bundle and lint workflow
 # description: Check specifications for SFTI's openapi rules.
 on:
   pull_request:
@@ -39,9 +39,11 @@ jobs:
           apiName=$(echo "${{ github.head_ref }}" | grep -o 'instrument-'  | grep -o 'instrument')
           echo "Head branch: ${{ github.head_ref }}"
           echo "Api name: $apiName"
-          apiFile="${apiName^}/build/${apiName}API.yaml"
+          apiFile="${apiName^}/${apiName}API.yaml"
+          apiBundledFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
+          echo "API_BUNDLED_FILE"=$apiBundledFile >> $GITHUB_OUTPUT
 
       - name: Check if the Push is Part of a PR to Main
         if: ${{ github.event_name == 'push' && github.event.pull_request != null && github.base_ref == 'refs/heads/main' }}
@@ -51,8 +53,31 @@ jobs:
         with:
           node-version: latest
 
+      # Install Redocly CLI
       - name: Install Redocly CLI
         run: npm install -g @redocly/cli
 
+      # Run the Redocly bundle command
+      - name: Bundle API docs
+        run: redocly bundle ${{ steps.var.outputs.API_FILE }} --output ${{ steps.var.outputs.API_BUNDLED_FILE }} # Adjust the paths as needed
+
+      # Configure Git
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      # Check if there are changes to commit
+      - name: Commit changes
+        run: |
+          git add ${{ steps.var.outputs.API_BUNDLED_FILE }}
+          git commit -m "Update bundled API file" || echo "No changes to commit"
+
+      # Push the changes back to the head branch
+      - name: Push changes
+        run: |
+          git push origin HEAD:${{ github.ref }}  # Push to the branch that triggered the workflow
+
+      # Run the Redocly lint command
       - name: Run Redocly lint
-        run: redocly lint --config=.github/redocly.yaml --format=stylish ${{ steps.var.outputs.API_FILE }}
+        run: redocly lint --config=.github/redocly.yaml --format=stylish ${{ steps.var.outputs.API_BUNDLED_FILE }}

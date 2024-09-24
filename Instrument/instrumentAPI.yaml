@@ -14,6 +14,8 @@ servers:
 externalDocs:
   description: Find out more about OpenWealth API specifications.
   url: https://openwealth.ch/
+tags: []
+security: []
 paths:
   /financial-instruments:
     get:

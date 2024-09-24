@@ -10,7 +10,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
   - description: Sample Server URL
-    url: https://openwealth.ch/
+    url: https://openwealth.ch
 security: []
 tags: []
 externalDocs:
@@ -19,9 +19,10 @@ externalDocs:
 paths:
   /financial-instruments:
     get:
+      summary: This is a summary
       responses:
         '200':
-          description: gets list of instruments
+          description: gets list of instruments.
           content:
             application/json:
               schema:
@@ -59,10 +60,11 @@ components:
         - type: object
           properties:
             currency:
+              description: Currency code.
               type: string
               pattern: ^[A-Z]{3}$
     Bond:
-      type: object$
+      type: object
       description: Schema of a bond instrument.
       allOf:
         - $ref: '#/components/schemas/FinancialInstrumentBase'
@@ -73,9 +75,11 @@ components:
               type: string
               pattern: ^[A-Z]{3}$
             maturityDate:
+              description: Maturity date of instrument.
               type: string
               format: date
-            coupon:
+            interestRate:
+              description: Interest rate of the bond.
               type: number
     Equity:
       type: object
@@ -85,36 +89,42 @@ components:
         - type: object
           properties:
             countryOfRisk:
-              description: ISO2 country code
+              description: ISO2 country code.
               type: string
-              format: ^[A-Z]{2}$
+              pattern: ^[A-Z]{2}$
     Identification:
       type: object
+      description: Schema of and identification key value pair.
       required:
         - type
         - identifier
       properties:
         type:
+          description: Identification type.
           type: string
           enum:
             - iso3
             - isin
             - other
         identifier:
+          description: Value of ientifier.
           type: string
     FinancialInstrumentBase:
       type: object
       description: Financial instrument entity.
       properties:
         type:
+          description: Type of the financial instrument.
           type: string
           enum:
             - Cash
             - Bond
             - Equity
         name:
+          description: Name of the financial instrument.
           type: string
         identificationList:
+          description: List of identification key value pairs.
           type: array
           items:
             $ref: '#/components/schemas/Identification'

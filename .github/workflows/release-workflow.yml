@@ -175,7 +175,6 @@ jobs:
 
           if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
             echo "Failed to create release draft. Received response from GitHub API:"
-            echo ""
             echo "$RESPONSE"
             exit 1
           fi
@@ -186,9 +185,9 @@ jobs:
         with:
           node-version: latest
 
-      - name: Install redocly version ${{env.REDOCLY_VERSION}}
+      - name: Install redocly
         run: |
-          npm install -g @redocly/cli@$REDOCLY_VERSION
+          npm install -g @redocly/cli
 
       - name: create API documentation
         id: create_api_docu
@@ -196,9 +195,8 @@ jobs:
           export NODE_NO_WARNINGS=1
           mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
           doc_file=${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.html
-          npx --silent @redocly/cli@$REDOCLY_VERSION build-docs ${{ needs.variables.outputs.API_FILE }} --output $doc_file
+          redocly build-docs ${{ needs.variables.outputs.API_FILE }} --output $doc_file
           echo "Created documentation: $doc_file"
-
           echo "doc_file=$doc_file" >> $GITHUB_OUTPUT
 
       - name: Upload doc file to release assets
@@ -219,7 +217,6 @@ jobs:
 
           if [[ $(echo $RESPONSE | head -n 1 | cut -d$' ' -f2 ) -ne 201 ]]; then
             echo "Failed to upload release asset $RELEASE_ASSET_DOCU. Received response from GitHub API:"
-            echo ""
             echo "$RESPONSE"
             exit 1
           fi

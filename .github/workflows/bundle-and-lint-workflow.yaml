@@ -31,8 +31,8 @@ jobs:
       - name: Get Pull Request Labels and set variables
         id: var
         run: |
-          apiFile="${$API_NAME^}/${$API_NAME}API.yaml"
-          apiBundledFile="${$API_NAME^}/build/${$API_NAME}API.yaml"
+          apiFile="${API_NAME^}/${API_NAME}API.yaml"
+          apiBundledFile="${API_NAME^}/build/${API_NAME}API.yaml"
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
           echo "API_BUNDLED_FILE"=$apiBundledFile >> $GITHUB_OUTPUT
 

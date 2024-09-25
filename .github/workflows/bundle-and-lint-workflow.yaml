@@ -31,8 +31,6 @@ jobs:
       - name: Get Pull Request Labels and set variables
         id: var
         run: |
-          # labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/g' | tr '\n' ' ')
-          # echo "Labels: $labels"
           apiFile="${$API_NAME^}/${$API_NAME}API.yaml"
           apiBundledFile="${$API_NAME^}/build/${$API_NAME}API.yaml"
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT

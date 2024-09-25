@@ -36,10 +36,6 @@ jobs:
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
           echo "API_BUNDLED_FILE"=$apiBundledFile >> $GITHUB_OUTPUT
 
-      - name: Check if the Push is Part of a PR to Main
-        if: ${{ github.event_name == 'push' && github.event.pull_request != null && github.base_ref == 'refs/heads/main' }}
-        run: echo "This push is part of a pull request."
-
       - uses: actions/setup-node@v4
         with:
           node-version: latest

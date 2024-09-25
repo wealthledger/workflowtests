@@ -39,9 +39,6 @@ jobs:
       RELEASE_TAG: ${{ steps.var.outputs.RELEASE_TAG }}
       RELEASE_BRANCH_NAME: ${{ steps.var.outputs.RELEASE_BRANCH_NAME }}
       RELEASE_NOTES: ${{ steps.var.outputs.RELEASE_NOTES }}
-      RELEASE_ASSETS_NAME: ${{ steps.var.outputs.RELEASE_ASSETS_NAME }}
-      DOC_PATH: ${{ steps.var.outputs.DOC_PATH }}
-      DOC_ARTIFACT_NAME: ${{ steps.var.outputs.DOC_ARTIFACT_NAME }}
 
     steps:
       - name: Validate input parameters
@@ -71,9 +68,6 @@ jobs:
           echo "RELEASE_TAG="$tagName >> $GITHUB_OUTPUT
           echo "RELEASE_BRANCH_NAME=release/$version" >> $GITHUB_OUTPUT
           echo "RELEASE_NOTES=RELEASE.md" >> $GITHUB_OUTPUT
-          echo "RELEASE_ASSETS_NAME=artifact" >> $GITHUB_OUTPUT
-          echo "DOC_PATH=docs/" >> $GITHUB_OUTPUT
-          echo "DOC_ARTIFACT_NAME=$repo_name-api-spec-docu-v$version" >> $GITHUB_OUTPUT
 
   release:
     runs-on: ubuntu-latest
@@ -193,7 +187,6 @@ jobs:
         id: create_api_docu
         run: |
           export NODE_NO_WARNINGS=1
-          mkdir -p ${{ needs.variables.outputs.DOC_PATH }}
           doc_file=${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.html
           redocly build-docs ${{ needs.variables.outputs.API_FILE }} --output $doc_file
           echo "Created documentation: $doc_file"
@@ -207,7 +200,6 @@ jobs:
           RELEASE_ID=${{ steps.create_release_draft.outputs.RELEASE_ID }}
 
           RELEASE_ASSET_DOCU=${{ steps.create_api_docu.outputs.doc_file }}
-          RELEASE_ASSET_API=${{ steps.create_api_docu.outputs.doc_file }}
 
           RESPONSE=$(curl -sS -i -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -222,7 +214,7 @@ jobs:
           fi
 
           RELEASE_ASSET_API="${{ needs.variables.outputs.API_NAME }}API-${{ needs.variables.outputs.VERSION }}.yaml"
-          cp ./${{ needs.variables.outputs.API_FILE }} "${RELEASE_ASSET_API}"
+          cp ${{ needs.variables.outputs.API_FILE }} "${RELEASE_ASSET_API}"
 
           RESPONSE=$(curl -sS -i -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \

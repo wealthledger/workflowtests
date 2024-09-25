@@ -24,15 +24,17 @@ jobs:
         with:
           ref: ${{ github.head_ref }} # Checkout the head branch of the PR
 
+      - name: Set API of subject from label
+        if: contains(github.event.pull_request.labels.*.name, 'instrument')
+        run: echo "API_NAME=instrument" >> $GITHUB_ENV
+
       - name: Get Pull Request Labels and set variables
         id: var
         run: |
-          labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/g' | tr '\n' ' ')
-          echo "Labels: $labels"
-          apiName=$(echo "$labels" | grep -o 'instrument' )
-          apiFile="${apiName^}/${apiName}API.yaml"
-          apiBundledFile="${apiName^}/build/${apiName}API.yaml"
-          echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
+          # labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/g' | tr '\n' ' ')
+          # echo "Labels: $labels"
+          apiFile="${$API_NAME^}/${$API_NAME}API.yaml"
+          apiBundledFile="${$API_NAME^}/build/${$API_NAME}API.yaml"
           echo "API_FILE"=$apiFile >> $GITHUB_OUTPUT
           echo "API_BUNDLED_FILE"=$apiBundledFile >> $GITHUB_OUTPUT
 

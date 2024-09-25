@@ -32,12 +32,12 @@ jobs:
             exit 0
           fi
 
-      - name: Extract variables for Release action # Adjust names only here
+      - name: Get Pull Request Labels and set variables
         id: var
         run: |
-          apiName=$(echo "${{ github.head_ref }}" | grep -o 'instrument-'  | grep -o 'instrument')
-          echo "Head branch: ${{ github.head_ref }}"
-          echo "Api name: $apiName"
+          labels=$(jq -r '.pull_request.labels[].name' <<< "${{ toJson(github.event) }}")
+          echo "Labels: $labels"
+          apiName=$(echo "$labels" | grep -o 'instrument' )
           apiFile="${apiName^}/${apiName}API.yaml"
           apiBundledFile="${apiName^}/build/${apiName}API.yaml"
           echo "API_NAME"=$apiName >> $GITHUB_OUTPUT
